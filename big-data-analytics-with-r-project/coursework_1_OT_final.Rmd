@@ -1,0 +1,856 @@
+---
+title: "Coursework 1"
+author: '**Orlando Taddeo** (Stud. ID **13180720**)'
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+subtitle: MSc Data Science
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, include=TRUE, message=FALSE, warning=FALSE)
+```
+
+## 1. Statistical learning methods
+
+For each part of (a) through (d), indicate whether we would generally expect the performance of a flexible statistical learning method to be better or worse than an inflexible method. Justify your answer.
+
+The choice of a more or less flexible statistical learning method, in a given scenario, depends mostly on the aim of the analysis that needs to be carried out.
+
+In general, the use of a flexible model allows us to fit the training data much better, increasing the level of accuracy of the analysis. On the other hand, however, a model with high flexibility can lead to very complicated estimates of the true underlying relationship *f*, reducing significantly yhe interpretability of the results.
+
+The choice of the model's felxibility, then, is first of all dictated by finding the right balance between *accuracy* and *interpretability*.
+More restrictive models produce simpler estimations of *f*, that can be useful in an *inference* framework. In fact, a simple function is much easier to interpret than a more complicated one.
+More flexible models could be, instead, better performing in a *prediction* framework, where a more complex shape of the *f* estimations can lead to more accurate previsions.
+Nevertheless, it is also important to bear in mind that more flexible models could lead to *overfitting* issues.
+
+Other than the general observations above, however, the choice of the model to be used depends also on the nature of the dataset available for the analysis. In fact, depending on its flexibility, a certain statistical learning method needs the dataset to have certain features (e.g. in terms of number of predictors and observations available) to be well exploited.
+
+In the following, we consider few simple cases in which different kind of datasets are available
+
+### a) The number of predictors p is extremely large, and the number of observations n is small.
+
+In this case, a flexible method would be a **worse** choice than an inflexible one.
+In fact, the small amount of observations would cause the estimation of the true underlying relationship *f* to follow closely the training datapoints, causing an *overfitting* problem.
+
+### b) The sample size n is extremely large, and the number of predictors p is small.
+
+In this case, a flexible method would give a **better** estimation of the true underlying relationship *f*. This happens because a high amount of observations can be fitted better using a higher amount of *degrees of freedom*.
+
+### c) The relationship between the predictors and response is highly non-linear
+
+In this case, a flexible method would be **better** than an inflexible one.
+This is because a larger amount of *degrees of freedom* allows us to account for certain non-linear relationships between the *response* (or dependent variable) $Y$, and the *predictors* (or independent variables) $X_i$.
+
+### d) The standard deviation of the error terms, i.e. $\sigma$ = sd($\varepsilon$), is extremely high
+
+In this case, a flexible methos would be a **worse** choice than an inflexible one.
+In fact, the approximation of the true underlying relationship *f* would be significantly affected by the *noise* in the training data (i.e. the errors). As a consequesce, the analysis would be affected by *overfitting* issues.
+
+## 2. Bayes' rule
+
+### Given a dataset including 20 samples (S_1, . . . , S_20) about the temperature (i.e. hot or cool) for playing golf (i.e. yes or no), you are required to use the Bayes’ rule to calculate by hand the probability of playing golf according to the temperature, i.e. P(Play Golf | Temperature)
+
+Let us define:
+
+G = 0 : No playing golf
+G = 1 : Playing golf
+
+T = 0 : Cool temperature
+T = 1 : Hot temperature
+
+In order to explore all the possible scenarios required by the question, we then need to consider the following four possibilities:
+
+P(G=1|T=1)
+
+P(G=1|T=0)
+
+P(G=0|T=1)
+
+P(G=0|T=0)
+
+
+We can use the following expressions of the Bayes' rule:
+
+P(G=1|T=1) = $\frac{P(T=1|G=1)*P(G=1)}{P(T=1)}$
+
+P(G=1|T=0) = $\frac{P(T=0|G=1)*P(G=1)}{P(T=0)}$
+
+P(G=0|T=1) = $\frac{P(T=1|G=0)*P(G=0)}{P(T=1)}$
+
+P(G=0|T=0) = $\frac{P(T=0|G=0)*P(G=0)}{P(T=0)}$
+
+We need to calculate, from the avilable dataset, the following probabilities:
+
+P(G=0) = $\frac{10}{20}$ = $\frac{1}{2}$
+
+P(G=1) = $\frac{10}{20}$ = $\frac{1}{2}$
+
+P(T=0) = $\frac{8}{20}$ = $\frac{2}{5}$
+
+P(T=1) = $\frac{12}{20}$ = $\frac{3}{5}$
+
+P(T=1|G=1) = $\frac{5}{10}$ = $\frac{1}{2}$
+
+P(T=0|G=1) = $\frac{5}{10}$ = $\frac{1}{2}$
+
+P(T=1|G=0) = $\frac{7}{10}$
+
+P(T=0|G=0) = $\frac{3}{10}$
+
+Once these quantities are known, we can apply the Bayes' rule four times, to obtain:
+
+P(G=1|T=1) = $\frac{(1/2)*(1/2)}{(3/5)}$ = 5/12
+
+P(G=1|T=0) = $\frac{(1/2)*(1/2)}{(2/5)}$ = 5/8
+
+P(G=0|T=1) = $\frac{(7/10)*(1/2)}{(3/5)}$ = 7/12
+
+P(G=0|T=0) = $\frac{(3/10)*(1/2)}{(2/5)}$ = 3/8
+
+## 3. Descriptive analysis
+
+In order to work with the `Auto` dataset, we need to import it and to assign it to a *data frame* object in R. The dataset is stored in a .csv file.
+We perform these operations by taking advantage of the powerful libraries `readr` and `dplyr`. We need to import these libraries and use their functions to read the .csv file and store its contents in a data frame object called `Auto`
+
+```{r}
+library(readr)
+library(dplyr)
+
+auto = read_csv("Auto.csv", na="?")
+```
+Note that the command above classifies automatically the strings "?" as a `N/A` value.
+Once the data frame object has been created, we can explore it buy showing its first rows and all its columns via the `head()` function:
+
+```{r}
+head(auto)
+```
+Rather than visual inspection, we can use some on-purpose functions to identify some key-features of the data set.
+
+Using the `dim()` function, we can know the dimensions of the data frame:
+
+```{r}
+dim(auto)
+```
+
+This tells us that the data frame consists in 9 columns (or *predictors*) and 397 rows (or *observations*, or entries).
+
+We can get the name of all the variables by the `names()` function, as follows:
+
+```{r}
+names(auto)
+```
+We are interested in understanding what kind of data is contained in the data frame as well (e.g numbers, strings). We can do this by using the `glimpse()` function:
+
+```{r}
+glimpse(auto)
+```
+We can then understand that:
+
+- the `name` variable contains character strings;
+
+- all the other 8 variables contain numeric values.
+
+After having initially explored the data set, we can proceed with further analysis.
+
+### a) Which of the predictors are quantitative, and which are qualitative?
+
+We can observe that:
+
+- The `name` predictor is qualitative, since it is a character string identifying the name associated with every vehicle.
+
+- The `origin` predictor, even though numeric, can be interpreted as a *factor*, because the values assigned to it might identify a certain kind of origin of the vehicle. As such, it can be considered a qualitative predictor.
+
+- All the other predictors are quantitative, since they are numeric values.
+
+### b) What is the range of each quantitative predictor? You can answer this using the range() function.
+
+The range of each predictor can be obtained by passing all the entries in each column to the `range()` function, via the `lapply()` function, as follows:
+
+```{r}
+lapply(auto, range, na.rm=TRUE)
+```
+
+As we expected, for the `name` variable we do not get any numerical result.
+
+### c) What is the median and variance of each quantitative predictor?
+
+The median of each predictor can be obtained by passing all the entries in each column to the `median()` function, via the `lapply()` function, as follows:
+
+```{r}
+lapply(auto, median, na.rm=TRUE)
+```
+
+The variance of each predictor can be obtained by passing all the entries in each column to the `variance()` function, via the `lapply()` function, as follows:
+
+```{r}
+lapply(auto, var, na.rm=TRUE)
+```
+
+### d) Now remove the 11th through 79th observations (inclusive) in the dataset. What is the range, median, and variance of each predictor in the subset of the data that remains?
+
+In order to perform this task, we can create a new dataframe object called `red_auto`, to which we assign the data contained in `auto`, but removing the entries from 11 to 79. We do this by using the `slice()` function, as follows:
+
+```{r}
+red_auto = slice(auto, -11:-79)
+```
+
+The ranges of the columns modified in such a way are as follows:
+
+```{r}
+lapply(red_auto, range, na.rm=TRUE)
+```
+
+The median of the columns modified in such a way is as follows:
+
+```{r}
+lapply(red_auto, median, na.rm=TRUE)
+```
+
+The variance of the columns modified in such a way is as follows:
+
+```{r}
+lapply(red_auto, var, na.rm=TRUE)
+```
+
+### e) Using the full data set, investigate the predictors graphically, using scatterplots or other tools of your choice. Create some plots highlighting the relationships among the predictors. Comment on your findings.
+
+We can create plots ti visualise data by using the `ggplot2` library.
+We import it using the following command:
+
+```{r}
+library(ggplot2)
+```
+
+It would be interesting to investigate the relationship between some car's features and its consumption (expressed by the `mpg` predictor). To do so, we can produce the following scatterplots:
+
+- `cylinders` vs `mpg`
+- `horsepower` vs `mpg`
+- `weight` vs `mpg`
+
+```{r}
+viz_cylinders = ggplot(data=auto, aes(x=cylinders, y=mpg)) +
+      
+    geom_point() +
+
+    labs(title="Cylinders vs mpg", subtitle="From 'Auto' dataset", x="Number of cylinders", y="mpg")
+
+viz_cylinders
+```
+
+```{r}
+viz_horsepower = ggplot(data=auto, aes(x=horsepower, y=mpg)) +
+      
+    geom_point() +
+
+    labs(title="Horsepower vs mpg", subtitle="From 'Auto' dataset", x="horsepower", y="mpg")
+
+viz_horsepower
+```
+
+```{r}
+viz_weight = ggplot(data=auto, aes(x=weight, y=mpg)) +
+      
+    geom_point() +
+
+    labs(title="Weight vs mpg", subtitle="From 'Auto' dataset", x="Weight", y="mpg")
+
+viz_weight
+```
+
+From a visual inspection of the data plotted, we can deduce some very simple observations.
+
+1) From the first plot, it is clear that the fuel consumption of the car increases (i.e. the mpg decrease) as the number of cylinders increases. This is a natural consequence of the fact that, usually, cars with a bigger displacement consume more fuel. However, a very high dispersion oh the data is highlighted for cars with a low number of cylinders (e.g. 4), whilst this dispersion becomes less pronounced as the number of cylinders increases. It is worth noting though, that the datapoints for cars with a high number of cylinders are much less. This can be interpreted os a direct consequence of the smaller amount of such vehicles being bought, due to their higher cost. 
+
+2) From the second plot, we can observe that the fuel consumption increases rapidly as the car's horsepower increases. This relationship seems to be nonlinear.
+
+3) From the third plot, it can be seen that the fuel consumption increases also as the weight of the vehicle increases, as one might expect. In this case, the data seems to be suitable for a linear regression, from a first visual inspection.
+
+It is worth noting that it is fairly reasonable to expect the predictors considered above as having some level of *interaction* in between them. As an example, horsepower is usually dependent on cylinders, as we can observe from the following plot as well:
+
+```{r}
+viz_cyl_pow = ggplot(data=auto, aes(x=cylinders, y=horsepower)) +
+      
+    geom_point() +
+
+    labs(title="Number of cylinders vs horsepower", subtitle="From 'Auto' dataset", x="Number of cylinders", y="Horsepower")
+
+viz_cyl_pow
+```
+
+### f) Suppose that we wish to predict gas mileage (mpg) on the basis of the other variables. Do your plots suggest that any of the other variables might be useful in predicting mpg? Justify your answer.
+
+As already noted in the previous section, a visual inspection of the scatterplots seems to suggest a relationship between the variables `cylinders`, `horsepower` and `weight` and the gas mileage. In fact, from the plots it can be observed that there is an apparent tendence of the `mpg` values to decrease as the previous variables increase. These observation, however, comes only from a visual interpretation, and should be justified by appropriate quantitative methods to justify a proper statistical correlation 
+
+## 4. Linear regression
+
+### This question involves the use of simple linear regression on the 'Auto' data set.
+
+### a), b) Use the lm() function to perform a simple linear regression with mpg as the response and horsepower as the predictor. Use the summary() function to print the results. Comment on the output. Plot the response and the predictor. Use the abline() function to display the least squares regression line.
+
+We perform the linear regression by using the `lm()` function, to which we pass the argument `na.exclude`, to exclude the rows containing `N/A`s. Since we saw earlier that there are only 5 of them, this operation is not going to have an effect of any statistical significance on the results.
+
+Also, we plot numerical information about the regression via the `summary()` function, as well as a graphical plot using the `ggplot2` library.
+
+```{r}
+lin_regr = lm(mpg~horsepower, data=auto, na.action = na.exclude)
+
+summary(lin_regr)
+
+viz_lin_regr = ggplot(data=auto, aes(x=horsepower, y=mpg)) + 
+  
+  labs(title="Linear regression of 'mpg' onto 'horsepower'", subtitle="From 'Auto' dataset", x="Horsepower", y="mpg") +
+  
+  geom_point() +
+  
+  geom_smooth(method="lm", se=FALSE)
+
+viz_lin_regr
+```
+
+After evaluating the graphical and numerical output, we can make some observations about the results.
+
+### i. Is there a relationship between the predictor and the response?
+
+In order to understand whether there is a relationship between the predictor (i.e. horsepower) and the response (i.e. mpg), a **hypothesis test** can be carried out.
+In particular, the hypotheses are two:
+
+$$H_0 : \beta_1 = 0 \text{ (null hypothesis)}$$
+
+$$H_a : \beta_1 \neq 0$$
+
+In order to **reject the null hypothesis**, we need a *p-value* that can be considered sufficiently small. In this case:
+
+$$p\text{_}value = 2.2x10^-16$$
+
+Since the p_value is very small, we can we can deduce that a relationsgip between *horsepower* and *mpg* indeed **exists**.
+
+### ii. How strong is the relationship between the predictor and the response?
+
+In order to asses the strength of the relationship between the chosen predictor and the repsonse, we need to assess the *accuracy of the model*. This can be done by means of the **RSE** (i.e. the *residual standard error*) and the **R^2** statistic.
+
+From the summary reported above, we know that:
+
+$$RSE = 4.096$$
+
+To understand whether this value is acceptable, we can calculate what percentage of the mean of `mpg` is represented by the RSE value. The mean of the respose values canbe obtained by the `mean()` function:
+
+```{r}
+mean_mpg = mean(auto$mpg, na.remove=TRUE)
+
+mean_mpg
+```
+We then obtain:
+
+$$(4.096 / 23.516)*100 = 17.42%$$
+
+An error of about 17% could be considered acceptable in our case.
+
+If we examine the summary again, instead, we obtain:
+
+$$R^2 = 0.606$$
+
+This means that about two-thirds of the variability in mpg is explained by the linear regression on horsepower. This value can be deemed accaptable in the context in which we are applying the linear regression model. In fact, the linear model can be seen at best as a very crude approximation of the data.
+
+### iii. Is the relationship between the predictor and the response positive or negative?
+
+In this case, the value of $\beta_1$ is -0.158, and then the relationship is **negative**. This can be observed from the plot as well, where the value of `mpg` decreases as `horsepower` increases.
+
+### iv. What is the predicted mpg associated with a horsepower of 89? What are the associated 99% confidence and prediction intervals?
+
+We can use the function `predict()` to obtain the estimated value of the respose, given a certain value of the predictor. In this case:
+
+```{r}
+predict(lin_regr, data.frame(horsepower=89), type = "response")
+```
+
+Once again, the `predict()` function can be used to obtain the 99% confidence interval associated with a value of horsepower = 89:
+
+```{r}
+predict(lin_regr, data.frame(horsepower=89), interval="confidence", level=0.99)
+```
+
+The `predict()` function can be also used to obtain the 99% prediction interval associated with a value of horsepower = 89:
+
+```{r}
+predict(lin_regr, data.frame(horsepower=89), interval="prediction", level=0.99)
+```
+
+As we expected, the prediction interval is **wider** than the confidence one.
+
+## 5) Logistic regression
+
+### A recent study has shown that the accurate prediction of the office room occupancy leads to potential energy savings of 30%. In this question, you are required to build logistic regression models by using different environmental measurements as features, such as temperature, humidity, light, CO2 and humidity ratio, to predict the office room occupancy. The provided training dataset consists of 2,000 samples, whilst the testing dataset consists of 300 samples.
+
+### a) Load the training and testing datasets from corresponding files, and display the statistics about different features in the training dataset.
+
+The two datasets can be imported by the `read_csv()` function, as follows:
+
+```{r}
+train_data = read_csv("Q5 Training.csv")
+test_data = read_csv("Q5 Testing.csv")
+
+head(train_data)
+glimpse(train_data)
+
+head(test_data)
+glimpse(test_data)
+```
+
+From the inspection of the training dataset, we understamd that:
+
+- We have 2000 observations;
+
+- We have 6 variables: `Temperature`, `Humidity`, `Light`, `CO2`, `HumidityRatio` and `Occupancy`;
+
+- All the variables are numeric, but the `Occupancy` one is to be interpreted as a **categorical** one, meaning that it identifies the two possibilities:
+
+$$Full\text{ }occupancy = 1$$
+
+$$No\text{ }full\text{ }occupancy = 0$$
+
+Also, we can observe that the testing dataset has a structure that is consistent with the training one.
+
+Using the `summary()` function, we can obtain the main statistical information about the training dataset.
+
+```{r}
+train_data %>%
+  select(-Occupancy) %>%
+    summary()
+```
+
+where we removed the variable `Occupancy`, since the quantities calculated using summary are not useful for a categorical variable.
+
+
+### b) Build a logistic regression model by only using the Temperature feature to predict the room occupancy. Display the confusion matrix and the predictive accuracy obtained on the testing dataset.
+
+A logistic regression can be built by using the `glm()` function, and the `summary()` function can be called once again to view the basic information about the regression.
+
+```{r}
+log_regr_temp = glm(Occupancy~Temperature, data=train_data, family=binomial)
+
+summary(log_regr_temp)
+```
+
+From the extremely low p_value and the high z-value, we can **reject the null hypothesis** and state that there is indeed a relationship between `Temperature` and the probability of a completely occupied office room.
+Also, since the coefficent $\beta_1$ is greater than zero, the correlation is positive.
+
+The following graph illustrates grahically the results of the logistic regression, along with the raw data used to build the regression model.
+
+```{r}
+viz_log_temp = ggplot(data=train_data, aes(x=Temperature, y=Occupancy)) + 
+  
+  labs(title="Logistic regression of 'Occupancy' onto 'Temperature'", x="Temperature", y="Occupancy") +
+  
+  geom_point() +
+  
+  stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) +
+  
+  xlim(20, 23.2)
+
+viz_log_temp
+```
+
+In order to assess the accuracy of the logistic model in predicting the response, we can start by building a **confusion matrix**.
+To do so, we can use the testing data set previously imported. In particular, we will use our model to predict the full occupancy probability from the `Temperature` values contained in the test data set. Then, we will compare these results against the real outcome (contained in the testing dataset as well).
+
+We can start by building a vector containig the predicted probabilities for each of the entries. It will have length equal to the number of entries of the testing data dataset, as we can see from the following output: 
+
+```{r}
+log_regr_pred_temp = predict(log_regr_temp, test_data, type="response")
+
+dim(test_data)[1]
+
+length(log_regr_pred_temp) == dim(test_data)[1]
+```
+
+We now need to associate the above probabilities to one of the two possible outcomes: Occupancy = 0 or Occupancy = 1.
+We can do so associating to 0 every probability value lower than 0.5, and associating to 1 every probability value equal or greater than 0.5.
+The sequence of zeros and ones so obtained can be stored in a numerical vector.
+
+```{r}
+predictions_temp = rep(1, length(log_regr_pred_temp))
+
+predictions_temp[log_regr_pred_temp < 0.5] = 0
+
+predictions_temp[1:15]
+```
+
+We are now able to build te confusion matrix using the `table()` function:
+
+```{r}
+table(truth=test_data$Occupancy, prediction=predictions_temp)
+```
+
+As we can see, the logistic regression predictions give us *always* a 0 value as outcome (i.e. a complete occupancy probability always less than 0.5)
+The **accuracy** and the **error rate** can be calculated as follows:
+
+```{r}
+accuracy_temp = (182+21)/300
+accuracy_temp
+
+err_rate_temp = (58+39)/300
+err_rate_temp
+```
+
+### c) Build a logistic regression model by only using the Humidity feature to predict the room occupancy. Display the confusion matrix and the predictive accuracy obtained on the testing dataset.
+
+Here, we follow the same steps as before, simply using a different predictor.
+
+```{r}
+log_regr_hum = glm(Occupancy~Humidity, data=train_data, family=binomial)
+
+summary(log_regr_hum)
+```
+
+From the extremely low p_value and the high z-value, we can **reject the null hypothesis** and state that there is indeed a relationship between `Humidity` and the probability of a completely occupied office room.
+Also, since the coefficent $\beta_1$ is greater than zero, the correlation is positive.
+
+The following graph illustrates grahically the results of the logistic regression, along with the raw data used to build the regression model.
+
+```{r}
+viz_log_hum = ggplot(data=train_data, aes(x=Humidity, y=Occupancy)) + 
+  
+  labs(title="Logistic regression of 'Occupancy' onto 'Humidity'", x="Humidity", y="Occupancy") +
+  
+  geom_point() +
+  
+  stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) +
+  
+  xlim(18.96, 28.50)
+
+viz_log_hum
+```
+
+We can now build the **confusion matrix**, proceeding as we did in the previous exercise.
+
+```{r}
+log_regr_pred_hum = predict(log_regr_hum, test_data, type="response")
+
+predictions_hum = rep(1, length(log_regr_pred_hum))
+
+predictions_hum[log_regr_pred_hum < 0.5] = 0
+
+predictions_hum[1:15]
+```
+
+We are now able to build te confusion matrix using the `table()` function:
+
+```{r}
+table(truth=test_data$Occupancy, prediction=predictions_hum)
+```
+
+The **accuracy** and the **error rate** can be calculated as follows:
+
+```{r}
+accuracy_hum = (133+38)/300
+accuracy_hum
+
+err_rate_hum = (107+22)/300
+err_rate_hum
+```
+
+### d) Build a logistic regression model by using all features to predict the room occupancy. Display the confusion matrix and the predictive accuracy obtained on the testing dataset.
+
+The procedure tobe followed to conduct a logistic regression on several predictors is the same as the one with one predictor only. The syntax to be used in the respective R function is, however, slightly different, as we can see in the following code.
+
+```{r}
+log_regr_all = glm(Occupancy~Temperature + Humidity + Light + CO2 + HumidityRatio, data=train_data, family=binomial)
+
+summary(log_regr_all)
+```
+
+We can now build the **confusion matrix**, proceeding as we did in the previous exercise.
+
+```{r}
+log_regr_pred_all = predict(log_regr_all, test_data, type="response")
+
+predictions_all = rep(1, length(log_regr_pred_all))
+
+predictions_all[log_regr_pred_all < 0.5] = 0
+
+predictions_all[1:15]
+```
+
+We are now able to build the confusion matrix using the `table()` function:
+
+```{r}
+table(truth=test_data$Occupancy, prediction=predictions_all)
+```
+
+The **accuracy** and the **error rate** can be calculated as follows:
+
+```{r}
+accuracy_all = (184+47)/300
+accuracy_all
+
+err_rate_all = (56+13)/300
+err_rate_all
+```
+
+### e) Compare the predictive performance of three different models by drawing ROC curves and calculating the AUROC values. Discuss the comparison results.
+
+As we can see from the accuracy tests we carried out before, the following indicators give us an understanding of the performance of the models we fit:
+
+**Regression on temperature**
+
+ACCURACY = 0.67
+
+ERROR RATE = 0.32
+
+**Regression on humidity**
+
+ACCURACY = 0.57
+
+ERROR RATE = 0.43
+
+**Regression on all predictors**
+
+ACCURACY = 0.77
+
+ERROR RATE = 0.23
+
+From these coefficients, we can observe that the approach that performs best in the test is the one taking into account all the predictors. In fact, from the `summary()` function, we can see that the lowest p_values are associated with `Light` and `CO2`, whilst `Temperature`, `Humidity` and `HumidityRatio` have a much poorer correlation with `Occupancy`.
+
+The predcitions obtained, however, are based on the choice of a treshold of 0.5 on the probabilty obtained feom the model, to classify a prediction as 1 or 0 (i.e full occupancy or not full occupancy). The choice of such a treshold affects significantly the output of the model, usually the value depends on he aim of the analysis itself. One might exacerbate the error on false positives, for example, rather then false negatives, depending on the problem at hand.
+
+In order to analyse the model's sensitivity to the treshold value, we can compute the area under the ROC curve for the three models produced. We need to compute, for each one of the approaches chosen, and for several values of the predictors, the TPR (i.e. True Positive Rate) and the FPR (i.e. False Positive Rate). Then, we can plot the TPR against the FPR, and compute the areas under these curves.
+We can perform this task by using the ROCR library, as follows.
+
+```{r}
+library(ROCR)
+
+pred_all = prediction(predict(log_regr_all, test_data, type="response"), test_data$Occupancy)
+perf_all = performance(pred_all,"tpr","fpr")
+plot(perf_all, colorize=TRUE)
+auroc_all = performance(pred_all, measure="auc")
+auroc_all@y.values[[1]]
+
+pred_temp = prediction(predict(log_regr_temp, test_data, type="response"), test_data$Occupancy)
+perf_temp = performance(pred_temp,"tpr","fpr")
+plot(perf_temp, colorize=TRUE)
+auroc_temp = performance(pred_temp, measure="auc")
+auroc_temp@y.values[[1]]
+
+pred_hum = prediction(predict(log_regr_hum, test_data, type="response"), test_data$Occupancy)
+perf_hum = performance(pred_hum,"tpr","fpr")
+plot(perf_hum, colorize=TRUE)
+auroc_hum = performance(pred_hum, measure="auc")
+auroc_hum@y.values[[1]]
+```
+
+As we can see, the highest value for the AUROC is given by the logistic regression of `Occupancy` onto all the variables available. However, the difference between this and what is obtained from the regression onto `Temperature` is small. With regard to the regression of `Occupancy` onto `Humidity`, instead, the AUROC value obtained is quite small. This hihlights a poor capacity of the model in yielding correct predictions.
+Aprt from the AUROC values themselves, another interesting parameter is the shape of the ROC curve. Ideally, the curve should be as close as possible to the top-left corner, so as to have a high TPR with a low FPR. As we can see from the plots, the curve that best matches the desired behaviour is the one related to the regression onto all the variables. The regression on `Temperature`, instead, has an almost flat brach at the beginning, indicating an increase in FPR without any gain in TPR. This behaviour is highly non-desiderable in a model. After a value of FPR is reached, though, a rapid increase in the TPR is obtained as FPR increases slightly.
+With regard to the last regression on `Humidity`, instead, the curve presents several almost flat branches, and this indicates that this preditor is not very useful to obtain accurate results. 
+
+## 6. Resampling methods
+
+### a) Which of these two models is likely to fit the test data better? Justify your answer.
+
+Starting from the assumptions that the data has been generated from a polynomial of degree 3, we have two different results by performing the regression by using a lower and a higher degree polynomials.
+- The polynomial of degree 2 is not going to capture fully the shape of the dataset, because of the missin cubic term.
+- The polynomial of degree 4 is going to follow the noise in the data more than the lower-degree one.
+
+As the polynomial degree (or the flexibility of the model) increases, the model is able to aproximate better the data reducing the bias, but at the same time the variance increases. This means that an optimal value of the polynomial's degree should be the one that minimises the combined effects of decreasing the bias but increasing the variance at the same time. This is known as **bias-variance trade off**.
+In the specific case considered, a polynomial of degree 4 would show a higher value of $R^2$, but this would be due to the ability of following the noise. On a test data set, the results would be worse. The degree-two polynomial would then be preferable, even though yielding a lower $R^2$. In fact, the general trend of the data would be captured, but limiting the overfitting effects on tbe results.
+
+### b) Generate the simulated data set as follows:
+
+```{r}
+set.seed(235)
+x = 12 + rnorm(400)
+y = 1 - x + 4*x^2 - 5*x^3 + rnorm(400)
+```
+
+### Create a scatterplot of X against Y. Comment on what you find.
+
+```{r}
+df_x_y = data.frame(x, y)
+
+viz_scatter = ggplot(data=df_x_y, aes(x=x, y=y)) + 
+  
+  labs(x="X", y="Y") +
+  
+  geom_point()
+
+viz_scatter
+```
+
+In this case, we can see that the random term introduced in the expression of $y$ is very small, and from the plot wer cannot appreciate the variablility by visual inspection.
+In fact, if we plot $x$ in a range closer to 0, where the values of $y$ are smaller, we can apporeciate the variability introduced. Consider, for example, the following plot, where $x$ has mena 0 and variance 1:
+
+```{r}
+set.seed(235)
+x_small = rnorm(400)
+y_small = 1 - x_small + 4*x_small^2 - 5*x_small^3 + rnorm(400)
+
+df_x_y_small = data.frame(x_small, y_small)
+
+viz_scatter_small = ggplot(data=df_x_y_small, aes(x=x_small, y=y_small)) + 
+  
+  labs(x="X", y="Y") +
+  
+  geom_point()
+
+viz_scatter_small
+```
+
+Also, in both plots, the majority of points at which we calculate $y$ are accumulated towards the mean of x, as we expect from the *normal distribution* we used in generating the values by `rnorm()`.
+
+### c) Set the seed to 34, and then compute the LOOCV and 10-fold CV errors that result from fitting the following two models using least squares:
+### i. $Y = β_0 + β_1 X + β_2 X^2 + ε$
+### ii. $Y = β_0 +β_1 X + β_2 X^2 + β_3 X^3 + β_4 X^4 + ε$
+### Note you may find it helpful to use the data.frame() function to create a single data set containing both X and Y.
+
+We generate our 400-pairs data set as follows, and save the results in a data frame object. We also visualise the data with a scatterplot, as done before.
+
+```{r}
+set.seed(34)
+x_34 = 12 + rnorm(400)
+y_34 = 1 - x_34 + 4*x_34^2 - 5*x_34^3 + rnorm(400)
+
+df_34 = data.frame(x_34, y_34)
+
+viz_scatter_34 = ggplot(data=df_34, aes(x=x_34, y=y_34)) + 
+  
+  labs(x="X", y="Y") +
+  
+  geom_point()
+
+viz_scatter_34
+
+```
+
+1. Use of the quadratic model for LOOCV
+
+We can perform the **leave one out cross validation** by using the `glm()`function, and obtain the value of the LOOCV estimate for the test MSE as well.
+
+```{r}
+library(boot)
+
+loocv_fit_2 = glm(y_34~poly(x_34, 2), data=df_34)
+
+loocv_2_err = cv.glm(df_34, loocv_fit_2)
+
+loocv_2_err$delta
+
+```
+
+2. Use of the 4-degree model for LOOCV
+
+We can perform the **leave one out cross validation** by using the `glm()`function, and obtain the value of the LOOCV estimate for the test MSE as well. This time, we use a degree 4 for the polynomial
+
+```{r}
+library(boot)
+
+loocv_fit_4 = glm(y_34~poly(x_34, 4), data=df_34)
+
+loocv_4_err = cv.glm(df_34, loocv_fit_4)
+
+loocv_4_err$delta
+```
+
+3. Use of the 2-degree model for K-FOLDCV
+
+The same procedure used before can be adopted to perform the regressiomn on the data. However, this time the cross validation is carried out by the K-Fold method.
+The computation of the error is achievied once again using the `cv.glm()` function, but passing an argumnent including the numebr of folds. We use 10 folds in this case:
+
+```{r}
+kfcv_fit_2 = glm(y_34~poly(x_34, 2), data=df_34)
+
+kfcv_fit_2_err = cv.glm(df_34, kfcv_fit_2, K=10)
+
+kfcv_fit_2_err$delta
+```
+
+4. Use of the 2-degree model for K-FOLDCV
+
+We proceed as in the previous ection, but we use a higher-degree polynomial instead:
+
+```{r}
+kfcv_fit_4 = glm(y_34~poly(x_34, 4), data=df_34)
+
+kfcv_fit_4_err = cv.glm(df_34, kfcv_fit_4, K=10)
+
+kfcv_fit_4_err$delta
+```
+
+### d) Repeat (c) using random seed 68, and report your results. Are your results the same as what you got in (c)? Why?
+
+```{r}
+set.seed(68)
+x_68 = 12 + rnorm(400)
+y_68 = 1 - x_68 + 4*x_68^2 - 5*x_68^3 + rnorm(400)
+
+df_68 = data.frame(x_68, y_68)
+
+viz_scatter_68 = ggplot(data=df_68, aes(x=x_68, y=y_68)) + 
+  
+  labs(x="X", y="Y") +
+  
+  geom_point()
+
+viz_scatter_68
+
+```
+
+1. Use of the quadratic model for LOOCV
+
+```{r}
+library(boot)
+
+loocv_fit_2_68 = glm(y_68~poly(x_68, 2), data=df_68)
+
+loocv_2_err_68 = cv.glm(df_68, loocv_fit_2_68)
+
+loocv_2_err_68$delta
+
+```
+
+2. Use of the 4-degree model for LOOCV
+
+```{r}
+library(boot)
+
+loocv_fit_4_68 = glm(y_68~poly(x_68, 4), data=df_68)
+
+loocv_4_err_68 = cv.glm(df_68, loocv_fit_4_68)
+
+loocv_4_err_68$delta
+```
+
+3. Use of the 2-degree model for K-FOLDCV
+
+The same procedure used before can be adopted to perform the regressiomn on the data. However, this time the cross validation is carried out by the K-Fold method.
+The computation of the error is achieved once again using the `cv.glm()` function, but passing an argument including the numebr of folds. We use 10 folds in this case:
+
+```{r}
+kfcv_fit_2_68 = glm(y_68~poly(x_68, 2), data=df_68)
+
+kfcv_fit_2_err_68 = cv.glm(df_68, kfcv_fit_2_68, K=10)
+
+kfcv_fit_2_err_68$delta
+```
+
+4. Use of the 2-degree model for K-FOLDCV
+
+We proceed as in the previous section, but we use a higher-degree polynomial instead:
+
+```{r}
+kfcv_fit_4_68 = glm(y_68~poly(x_68, 4), data=df_68)
+
+kfcv_fit_4_err_68 = cv.glm(df_68, kfcv_fit_4_68, K=10)
+
+kfcv_fit_4_err_68$delta
+```
+
+The results obtained using a different seed are different, since the seed is the numerical value from which the random generation starts. In fact, true random numebers generation is still not possible using computers, and the same seed gives the same results.
+
+### e) Which of the models in (c) had the smallest LOOCV and 10-fold CV error? Is this what you expected? Explain your answer.
+
+The values of the errors obtained via the LOOCV and the K-FOLDCV are very similar. The predictions obtained by using the 4-degree models are much better, since they approximate better the true relationship between X and Y.
+
+
+
